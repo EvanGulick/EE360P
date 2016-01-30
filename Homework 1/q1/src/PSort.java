@@ -1,5 +1,111 @@
-public abstract class PSort{
-  public static void parallelSort(int[] A, int begin, int end){
-    // TODO: Implement your parallel sort function 
-  }
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+public class PSort implements Runnable {
+	
+	private static ExecutorService es;
+	private int[] A;
+	private int begin;
+	private int end;
+	
+	public static void parallelSort(int[] A, int begin, int end){
+		end = end - 1;
+		if(A.length == 0) {
+			return;
+		}
+		if(begin > end) {
+			return;
+		}
+		
+		es = Executors.newCachedThreadPool();
+		PSort something = new PSort(A, begin, end);
+		Future<?> f = es.submit(something);
+		
+		try {
+			f.get();
+		} catch(ExecutionException e) {
+			e.printStackTrace();
+		} catch(InterruptedException e) {
+			e.printStackTrace();
+		} finally {
+			es.shutdown();
+		}
+	}
+
+	@Override
+	public void run() {
+		//begin and end are same
+		if(end - begin <= 0) {
+			return;
+		}
+		
+		//only two elements in bounded array
+		if(end - begin == 1) {
+			if(A[begin] > A[end]) {
+				int swap = A[begin];
+				A[begin] = A[end];
+				A[end] = swap;
+			}
+			return;
+		}
+		
+		//make pivot in middle of array
+		int pivot = A[(end + begin)/2];
+		
+		//partition
+		int i = begin;
+		int j = end;
+		int swap;
+		while(i <= j) {
+			while(A[i] < pivot) {
+				i++;
+			}
+			while(A[j] > pivot) {
+				j--;
+				if(j == -1) { 
+					System.out.println("halt"); 
+				}
+			}
+			if(i <= j) {
+				swap = A[i];
+				A[i] = A[j];
+				A[j] = swap;
+				i++;
+				j--;
+			}
+		}
+		
+		//recursive call, make two threads		
+		if(begin < i - 1) {	//array to left of pivot is greater than size 1
+			PSort arr1 = new PSort(A, begin, i-1);
+			Future<?> f1 = es.submit(arr1);
+			try {
+				f1.get();
+			} catch(ExecutionException e) {
+				e.printStackTrace();
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		if(i < end) {		//array to right of pivot is greater than size 1
+			PSort arr2 = new PSort(A, i, end);
+			Future<?> f2 = es.submit(arr2);
+			try {
+				f2.get();
+			} catch(ExecutionException e) {
+				e.printStackTrace();
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	
+	private PSort(int[] A, int begin, int end) {
+		this.A = A;
+		this.begin = begin;
+		this.end = end;
+	}
 }
