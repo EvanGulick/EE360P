@@ -1,0 +1,13 @@
+public class PSort implements Runnable {
+  public static void parallelSort(int[] A, int begin, int end){
+    // TODO: Implement your parallel sort function 
+  }
+
+  
+  
+  @Override
+  public void run() {
+	// TODO Auto-generated method stub
+	
+  }
+}
