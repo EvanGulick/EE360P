@@ -11,8 +11,9 @@ public class PSort implements Runnable {
 	private int end;
 	
 	public static void parallelSort(int[] A, int begin, int end){
-		end = end - 1;
-		if(A.length == 0) {
+		end = end - 1; //correction on end index based on test cases provided
+		
+		if(A.length == 0) {	//empty array
 			return;
 		}
 		if(begin > end) {
@@ -20,8 +21,8 @@ public class PSort implements Runnable {
 		}
 		
 		es = Executors.newCachedThreadPool();
-		PSort something = new PSort(A, begin, end);
-		Future<?> f = es.submit(something);
+		PSort arr = new PSort(A, begin, end);
+		Future<?> f = es.submit(arr);
 		
 		try {
 			f.get();
