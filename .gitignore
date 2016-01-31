@@ -62,6 +62,8 @@ local.properties
 .settings/
 .loadpath
 
-Homework 1/.metadata
+Homework 1/.metadata/**/*
+Homework 1/.metadata/**
+Homework\ 1/.metadata
 
 Homework 1/.metadata/.log
