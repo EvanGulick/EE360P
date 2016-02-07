@@ -5,6 +5,7 @@
  */
 
 public class ReadWriteLock {
+	//yoda
     // This class has to provide the following properties:
     // a. There is no read-write or write-write conflict.
     // b. A writer thread that invokes beginWrite() will be block only when

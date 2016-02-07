@@ -12,6 +12,7 @@ public class CyclicBarrier {
 	}
 
 	public synchronized int await() throws InterruptedException {
+		return 0;
         // Waits until all parties have invoked await on this barrier.
         // If the current thread is not the last to arrive then it is
         // disabled for thread scheduling purposes and lies dormant until
