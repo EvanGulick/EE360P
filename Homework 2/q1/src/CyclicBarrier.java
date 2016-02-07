@@ -29,16 +29,16 @@ public class CyclicBarrier {
 	public synchronized int await() throws InterruptedException {
 		threadcount -= 1;
 		
-		int tmp = threadcount;
+		int currentIndex = threadcount;
 		
-		if(tmp != 0){
+		if(currentIndex != 0){
 			wait();
 		} else {
 			threadcount = resetvalue;
 			notifyAll();
 		}
 		
-		return tmp;
+		return currentIndex;
 	}
 }
 
