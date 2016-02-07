@@ -6,13 +6,27 @@
 
 public class CyclicBarrier {
 
-	public CyclicBarrier(int parties) {
+	int threadcount;
+	
+	public CyclicBarrier(int parties) throws IllegalArgumentException {
+		if(parties <= 0){
+			throw new IllegalArgumentException("Thread count must be greater than 0!! :(");
+		}
+		threadcount = parties;
+		
         // Creates a new CyclicBarrier that will trip when
         // the given number of parties (threads) are waiting upon it.
 	}
 
 	public synchronized int await() throws InterruptedException {
-		return 0;
+		threadcount -= 1;
+		
+		if(threadcount != 0){
+			wait();
+		}
+		notifyAll();
+		
+		return threadcount;
         // Waits until all parties have invoked await on this barrier.
         // If the current thread is not the last to arrive then it is
         // disabled for thread scheduling purposes and lies dormant until
@@ -22,3 +36,4 @@ public class CyclicBarrier {
         // the last to arrive.
 	}
 }
+
