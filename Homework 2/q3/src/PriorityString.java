@@ -1,5 +1,5 @@
 /**
- * Class for the elements of our priority queue
+ * PriorityString Class for the elements of our priority queue
  * @author Scott Larson and Evan Gulick
  * 
  */

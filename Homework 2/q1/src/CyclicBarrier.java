@@ -1,5 +1,5 @@
 /**
- * 
+ * CyclicBarrier.java
  * @author Scott Larson and Evan Gulick
  *
  */
