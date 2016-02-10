@@ -4,8 +4,7 @@
  *
  */
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -14,7 +13,7 @@ public class PriorityQueue {
 	
 	private ReentrantLock addLock, pollLock;
 	private Condition isFull, isEmpty;
-	private List<PriorityString> queue;	// Index ~ Priority
+	private LinkedList<PriorityString> queue;	// Index ~ Priority
 	private AtomicInteger size;
 	private int capacity;
     
@@ -25,7 +24,7 @@ public class PriorityQueue {
 		this.isEmpty = pollLock.newCondition();
 		this.isFull = addLock.newCondition();
 		
-		this.queue = new ArrayList<PriorityString>(maxSize);
+		this.queue = new LinkedList<PriorityString>();
 		this.size = new AtomicInteger(0);
 		this.capacity = maxSize;
 	}
@@ -93,9 +92,7 @@ public class PriorityQueue {
 					isEmpty.await();
 				} catch (InterruptedException e) {}
 			}
-			
-			first = queue.get(size.get()-1);
-			queue.remove(size.get()-1);
+			first = queue.pollLast();
 			size.getAndDecrement();
 			wakeAdders = true;
 		} finally {
