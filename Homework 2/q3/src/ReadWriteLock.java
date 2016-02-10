@@ -4,7 +4,12 @@
  *
  */
 
+import java.util.concurrent.Semaphore;
+
 public class ReadWriteLock {
+    Semaphore mutex = new Semaphore(1);
+    Semaphore rlock = new Semaphore(1);
+    int numWriters = 0;
 	//yoda
     // This class has to provide the following properties:
     // a. There is no read-write or write-write conflict.
@@ -16,20 +21,27 @@ public class ReadWriteLock {
     //    have acquired and released the lock or no preceding writer thread
     //    exists.
 
-	public void beginRead() {
+	public void beginRead() throws InterruptedException {
+		 rlock.acquire();
+	}
+
+	public void endRead() throws InterruptedException {
+		 rlock.release();
 
 	}
 
-	public void endRead() {
-
+	public void beginWrite() throws InterruptedException {
+		 mutex.acquire();
+		 numWriters++;
+	     if (numWriters == 1) rlock.acquire();
+		 mutex.release();
 	}
 
-	public void beginWrite() {
-
-	}
-
-	public void endWrite() {
-
+	public void endWrite() throws InterruptedException {
+		 mutex.acquire();
+		 numWriters--;
+	     if (numWriters == 0) rlock.release();
+		 mutex.release();
 	}
 }
 
