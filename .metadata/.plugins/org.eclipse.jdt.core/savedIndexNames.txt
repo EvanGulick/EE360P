@@ -1,1 +1,1 @@
-INDEX VERSION 1.127+C:\Users\Kerenaeus\Documents\GitHub\EE360P\.metadata\.plugins\org.eclipse.jdt.core
+INDEX VERSION 1.127+/Users/Scott/Documents/workspace/EE360P/evanRepo/EE360P/.metadata/.plugins/org.eclipse.jdt.core
