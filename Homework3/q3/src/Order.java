@@ -1,3 +1,7 @@
+/**
+ * Order.java
+ * @author Scott Larson and Evan Gulick
+ */
 
 public class Order {
 	int id;

@@ -1,9 +1,12 @@
+/**
+ * Server.java
+ * @author Scott Larson and Evan Gulick
+ */
+
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -24,6 +27,7 @@ public class Server {
   static List<Item> Inventory;
   static List<User> UserDatabase;
   
+  // Nested static class Command for multi-threading the execution of a command
   static public class Command implements Callable<String> {
 	String cmd;
 	
@@ -41,6 +45,7 @@ public class Server {
 	}
   }
   
+  // Thread for TCP Server
   private static void TCPServer(int tcpPort) throws IOException {
 	String cmd;
 	PrintStream pout;
@@ -51,9 +56,6 @@ public class Server {
 	 	Socket connectionSocket = welcomeSocket.accept();
 	 	din = new Scanner(connectionSocket.getInputStream());
 	 	pout = new PrintStream(connectionSocket.getOutputStream());
-	 	//BufferedReader inFromClient = new BufferedReader(
-	 	//	new InputStreamReader(connectionSocket.getInputStream()));  
-	 	//DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());  
 	 	cmd = din.nextLine();	// Receive Command
 		Command cmdObj = new Command(cmd);
 		Future<String> result = es.submit(cmdObj);
@@ -69,6 +71,7 @@ public class Server {
 	}
   }
   
+  // Thread for the UDP Server
   private static void UDPServer(int updPort) {
 	String cmd;
 	DatagramPacket datapacket, returnpacket;
@@ -102,6 +105,7 @@ public class Server {
 	}
   }
   
+  // Decide which function to execute based on first word of the command
   public static String execute(String cmd) {
 	String tokens[] = cmd.split(" ");
 	if(tokens[0].equals("purchase")) {
@@ -217,7 +221,7 @@ public class Server {
     // parse the inventory file
     parseFile(fileName);
     
-    // TODO: handle request from clients
+    // handle request from clients
     Thread tcpthread = new Thread(){
 	  public void run(){
 		try {

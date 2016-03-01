@@ -1,3 +1,8 @@
+/**
+ * User.java
+ * @author Scott Larson and Evan Gulick
+ */
+
 import java.util.ArrayList;
 import java.util.List;
 

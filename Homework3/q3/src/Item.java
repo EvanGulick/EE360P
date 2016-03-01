@@ -1,4 +1,7 @@
-import java.util.List;
+/**
+ * Item.java
+ * @author Scott Larson and Evan Gulick
+ */
 
 public class Item {
   String name;

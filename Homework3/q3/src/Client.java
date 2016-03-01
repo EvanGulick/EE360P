@@ -1,3 +1,8 @@
+/**
+ * Client.java
+ * @author Scott Larson and Evan Gulick
+ */
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -6,6 +11,7 @@ import java.net.*;
 import java.io.*;
 
 public class Client {
+  // Send console cmd to Server through UDP protocol
   private static String sendUDP(String hostname, int udpPort, String cmd) {
 	byte[] rbuffer = new byte[1024];
 	DatagramPacket sPacket, rPacket;
@@ -32,6 +38,7 @@ public class Client {
 	return new String();
   }
   
+  // Send console cmd to Server through TCP protocol
   private static String sendTCP(String hostname, int tcpPort, String cmd) {
 	String response;  
 	PrintStream pout;
@@ -40,8 +47,6 @@ public class Client {
 	  Socket clientSocket = new Socket(hostname, tcpPort);  
 	  din = new Scanner(clientSocket.getInputStream());
 	  pout = new PrintStream(clientSocket.getOutputStream());
-	  //DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());  
-	  //BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 	  pout.println(cmd);
 	  pout.flush();
 	  response = din.nextLine();
@@ -53,6 +58,7 @@ public class Client {
 	return new String();
   } 
   
+  // Determine UDP or TCP protocol based on the last character of the command
   private static String send(String hostAddress, int tcpPort, int udpPort, 
 		  String cmd, String protocol) {
 	if(protocol.equals("U")) {
