@@ -44,8 +44,8 @@ public class Server {
   private static void TCPServer(int tcpPort) throws IOException {
 	String cmd;
 	PrintStream pout;
-	 Scanner din;
-	 try {
+	Scanner din;
+	try {
 	  ServerSocket welcomeSocket = new ServerSocket(tcpPort);	// Connect to socket
 	  while(true) {	// Infinite Loop wait for a client
 	 	Socket connectionSocket = welcomeSocket.accept();
@@ -115,7 +115,7 @@ public class Server {
   }
   
   private static String executePurchase(String username, String product, int quantity) {
-	  String putittogether = "";
+	String putittogether = "";
 	for(int i = 0; i<Inventory.size(); i++){
 	  if(Inventory.get(i).getName().equalsIgnoreCase(product)){
 	    if(Inventory.get(i).getQuantity() >= quantity){
