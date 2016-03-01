@@ -49,13 +49,13 @@ public class Server {
   
   public static String execute(String cmd) {
 	String tokens[] = cmd.split(" ");
-	if(tokens[0] == "purchase") {
+	if(tokens[0].equals("purchase")) {
 	  return executePurchase(tokens[1], tokens[2], Integer.parseInt(tokens[3]));
-	} else if (tokens[0] == "cancel") {
+	} else if (tokens[0].equals("cancel")) {
 	  return executeCancel(Integer.parseInt(tokens[1]));
-	} else if (tokens[0] == "search") {
+	} else if (tokens[0].equals("search")) {
 	  return executeSearch(tokens[1]);
-	} else if (tokens[0] == "list") {
+	} else if (tokens[0].equals("list")) {
 	  return executeList();
 	} else {
 	  return "invalid command";
@@ -63,7 +63,31 @@ public class Server {
   }
   
   private static String executePurchase(String username, String product, int quantity) {
-	return "not done";
+	  String putittogether = "";
+	for(int i = 0; i<Inventory.size(); i++){
+	  if(Inventory.get(i).getName().equalsIgnoreCase(product)){
+	    if(Inventory.get(i).getQuantity() >= quantity){
+	      Inventory.get(i).setQuantity(quantity);
+	      Order neworder = new Order(product, quantity);
+	      putittogether.concat(Integer.toString(neworder.getId())).
+	      concat(username).concat(product).concat(Integer.toString(quantity));
+	      for(int k = 0; k<UserDatabase.size(); k++){
+	    	  if(UserDatabase.get(k).getUserName().equals(username)){
+	    		  UserDatabase.get(k).addingOrder(neworder);
+	    		  return putittogether;
+	    	  }
+	      }
+	      User newuser = new User(username);
+	      newuser.orderHistory.add(neworder);
+	      UserDatabase.add(newuser);
+	      return putittogether;
+		}
+	    else{
+	      return "Out of Stock";
+	    }
+	  }
+	}
+	return "Invalid Product Name";
   }
   
   private static String executeCancel(int orderId) {

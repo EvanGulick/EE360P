@@ -15,4 +15,8 @@ public class Item {
 	int getQuantity() {
 		return quantity;
 	}
+	
+	void setQuantity(int purchased){
+		quantity -= purchased;
+	}
 }

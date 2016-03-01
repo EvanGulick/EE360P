@@ -17,4 +17,19 @@ public class User {
 	List<Order> getOrderHistory(){
 		return orderHistory;
 	}
+	
+	void addingOrder(Order neworder){
+		orderHistory.add(neworder);
+	}
+	
+	int removeorder(int orderid){
+		for(int i = 0; i<orderHistory.size(); i++){
+			if(orderHistory.get(i).getId() == orderid){
+				orderHistory.remove(i);
+				return 1;
+			}
+		}
+		return -1;
+	}
+	
 }

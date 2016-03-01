@@ -3,9 +3,11 @@ public class Order {
 	int id;
 	String productName;
 	int quantity;
+	static int idnumber = 0;
 	
-	Order(int id, String name, int quantity) {
-		this.id = id;
+	Order(String name, int quantity) {
+		idnumber += 1;
+		this.id = idnumber;
 		productName = name;
 		this.quantity = quantity;
 	}

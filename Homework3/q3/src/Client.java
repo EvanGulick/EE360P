@@ -37,9 +37,9 @@ public class Client {
   }
   
   private static String send(String hostAddress, int tcpPort, int udpPort, String cmd, String protocol) {
-	if(protocol == "U") {
+	if(protocol.equals("U")) {
   		return sendUDP(hostAddress, udpPort, cmd);
-  	} else if(protocol == "T") {
+  	} else if(protocol.equals("T")) {
   		return sendTCP(hostAddress, tcpPort, cmd);
   	} else {
   		return "u stoopid";
@@ -71,9 +71,9 @@ public class Client {
       if (tokens[0].equals("purchase")) {
     	String response = send(hostAddress, tcpPort, udpPort, cmd, tokens[tokens.length-1]);
     	String[] rtokens = response.split(", ");
-    	if (response == "Out of Stock") {
+    	if (response.equals("Out of Stock")) {
     	  System.out.println("Not Available - Not enough items");
-    	} else if (response == "Invalid Product Name") {
+    	} else if (response.equals("Invalid Product Name")) {
   		  System.out.println("Not Available - We do not sell this product");
     	} else {
 	    	System.out.println("Your order has been placed, " + Integer.parseInt(rtokens[0])
@@ -82,7 +82,7 @@ public class Client {
       } 
       else if (tokens[0].equals("cancel")) {
     	String response = send(hostAddress, tcpPort, udpPort, cmd, tokens[tokens.length-1]);
-    	if(response == "Not Found") {
+    	if(response.equals("Not Found")) {
     	  System.out.println(tokens[1] + " not found, no such order.");
     	} else {
     	  System.out.println("Order " + tokens[1] + " is canceled");
@@ -90,7 +90,7 @@ public class Client {
       } 
       else if (tokens[0].equals("search")) {
     	String response = send(hostAddress, tcpPort, udpPort, cmd, tokens[tokens.length-1]);
-    	if(response == "0") {
+    	if(response.equals("0")) {
     	  System.out.println("No orders found for " + tokens[1]);
     	} else {
     	  String[] rtokens = response.split(", ");
