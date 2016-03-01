@@ -14,11 +14,11 @@ public class User {
 		return name;
 	}
 	
-	public List<Order> getOrderHistory(){
+	synchronized public List<Order> getOrderHistory(){
 		return orderHistory;
 	}
 	
-	public Order getOrder(int orderId){
+	synchronized public Order getOrder(int orderId){
 		for(int i = 0; i < orderHistory.size(); i++) {
 			if(orderHistory.get(i).getId() == orderId) {
 				return orderHistory.get(i);
@@ -27,11 +27,11 @@ public class User {
 		return new Order();
 	}
 	
-	public void addingOrder(Order neworder){
+	synchronized public void addingOrder(Order neworder){
 		orderHistory.add(neworder);
 	}
 	
-	public int removeorder(int orderid){
+	synchronized public int removeorder(int orderid){
 		for(int i = 0; i<orderHistory.size(); i++){
 			if(orderHistory.get(i).getId() == orderid){
 				orderHistory.remove(i);

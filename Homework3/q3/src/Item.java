@@ -13,15 +13,15 @@ public class Item {
 	return name;
   }
 	
-  int getQuantity() {
+  synchronized int getQuantity() {
 	return quantity;
   }
 	
-  void setQuantity(int purchased){
+  synchronized void setQuantity(int purchased){
 	quantity -= purchased;
   }
 	
-  void returnItem(int rQuantity) {
+  synchronized void returnItem(int rQuantity) {
 	quantity += rQuantity;
   }
 }
