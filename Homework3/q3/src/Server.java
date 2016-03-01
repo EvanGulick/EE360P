@@ -1,10 +1,18 @@
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -21,30 +29,68 @@ public class Server {
 		this.cmd = cmd;
 	}
 	
+	public String getString() {
+		return cmd;
+	}
+	
 	@Override
 	public String call() throws Exception {
 	  return execute(cmd);
 	}
   }
   
-  private static void TCPServer(int tcpPort) {
-	String cmd = "";
-	// Infinite Loop wait for a client
-	// Connect to socket
-	// Receive Command
-	Command cmdObj = new Command(cmd);
-	Future<String> result = es.submit(cmdObj);
-	// Send result back
+  private static void TCPServer(int tcpPort) throws IOException {
+	String cmd;
+	try {
+	  ServerSocket welcomeSocket = new ServerSocket(tcpPort);	// Connect to socket
+	  while(true) {	// Infinite Loop wait for a client
+		Socket connectionSocket = welcomeSocket.accept();             
+		BufferedReader inFromClient = new BufferedReader(
+				new InputStreamReader(connectionSocket.getInputStream()));             
+		DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());             
+		cmd = inFromClient.readLine();	// Receive Command
+		Command cmdObj = new Command(cmd);
+		Future<String> result = es.submit(cmdObj);
+		outToClient.writeBytes(result.get());      
+	  }
+	} catch(IOException e) {
+	  System.err.println(e);
+	} catch(InterruptedException e) {
+	  System.err.println(e);
+	} catch(ExecutionException e) {
+	  System.err.println(e);
+	}
   }
   
   private static void UDPServer(int updPort) {
-	String cmd = "";
-	// Infinite Loop wait for a client
-	// Connect to socket
-	// Receive Command
-	Command cmdObj = new Command(cmd);
-	Future<String> result = es.submit(cmdObj);
-	// Send result back
+	String cmd;
+	DatagramPacket datapacket, returnpacket;
+	try {
+	  DatagramSocket datasocket = new DatagramSocket(updPort);	// Connect to socket
+	  byte[] buf = new byte[1024];
+	  while(true){	// Infinite Loop wait for a client
+		datapacket = new DatagramPacket(buf, buf.length);
+		datasocket.receive(datapacket);		// Receive Command
+		cmd = new String(datapacket.getData(), 0, datapacket.getLength());
+		Command cmdObj = new Command(cmd);
+		Future<String> result = es.submit(cmdObj);
+		buf = new byte[cmdObj.getString().length()];
+		buf = result.get().getBytes();
+		returnpacket = new DatagramPacket(buf, 
+						buf.length, 
+						datapacket.getAddress(),
+						datapacket.getPort());
+		datasocket.send(returnpacket);
+	  }
+	} catch (SocketException e) {
+	  System.err.println(e);
+	} catch (IOException e) {
+	  System.err.println(e);
+	} catch (InterruptedException e) {
+	  System.err.println(e);
+	} catch (ExecutionException e) {
+	  System.err.println(e);	
+	}
   }
   
   public static String execute(String cmd) {
@@ -103,7 +149,8 @@ public class Server {
 	  for(int i = 0; i<UserDatabase.size(); i++){
 		if(UserDatabase.get(i).getUserName().equals(username)){
 		  String concattedorders = "";
-		  concattedorders = Integer.toString(UserDatabase.get(i).getOrderHistory().size()) + ", ";
+		  concattedorders = Integer.toString(
+				  UserDatabase.get(i).getOrderHistory().size()) + ", ";
 		  for(int k = 0; k < UserDatabase.get(i).getOrderHistory().size(); k++){
 			  concattedorders = concattedorders + 
 			Integer.toString(UserDatabase.get(i).getOrderHistory().get(k).getId()) + " " +
@@ -150,22 +197,18 @@ public class Server {
     
     // TODO: handle request from clients
     Thread tcpthread = new Thread(){
-		public void run(){
-			try {
-				TCPServer(tcpPort);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+	  public void run(){
+		try {
+		  TCPServer(tcpPort);
+		} catch (IOException e) {
+		  e.printStackTrace();
 		}
+	  }
 	};
 	Thread udpthread = new Thread(){
-		public void run(){
-			try{
-				UDPServer(udpPort);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+	  public void run(){
+		UDPServer(udpPort);
+	  }
 	};
 	
 	tcpthread.start();	
