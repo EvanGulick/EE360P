@@ -104,8 +104,8 @@ public class Client {
       else if (tokens[0].equals("list")) {
     	String response = send(hostAddress, tcpPort, udpPort, cmd, tokens[tokens.length-1]);
     	String[] rtokens = response.split(", ");
-  	    for(int i = 1; i < Integer.parseInt(rtokens[0]) + 1; i++) {
-  		  System.out.println(Integer.parseInt(rtokens[i]));
+  	    for(int i = 1; i < (Integer.parseInt(rtokens[0]) *2) + 1; i += 2) {
+  		  System.out.println(rtokens[i] + " " + Integer.parseInt(rtokens[i+1]));
   	    }
       } 
       else {

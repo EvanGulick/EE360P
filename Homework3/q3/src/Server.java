@@ -69,8 +69,8 @@ public class Server {
 	    if(Inventory.get(i).getQuantity() >= quantity){
 	      Inventory.get(i).setQuantity(quantity);
 	      Order neworder = new Order(product, quantity);
-	      putittogether.concat(Integer.toString(neworder.getId())).
-	      concat(username).concat(product).concat(Integer.toString(quantity));
+	      putittogether = Integer.toString(neworder.getId()) + ", "
+	     + username + ", " + product + ", " + Integer.toString(quantity);
 	      for(int k = 0; k<UserDatabase.size(); k++){
 	    	  if(UserDatabase.get(k).getUserName().equals(username)){
 	    		  UserDatabase.get(k).addingOrder(neworder);
@@ -91,15 +91,39 @@ public class Server {
   }
   
   private static String executeCancel(int orderId) {
-	return "not done";
+	for(int i = 0; i<UserDatabase.size(); i++){
+	  if(UserDatabase.get(i).removeorder(orderId) == 1){
+		  return "Check";
+	  }
+	}
+	return "Not Found";
   }
   
   private static String executeSearch(String username) {
-	return "not done";
+	  for(int i = 0; i<UserDatabase.size(); i++){
+		if(UserDatabase.get(i).getUserName().equals(username)){
+		  String concattedorders = "";
+		  concattedorders = Integer.toString(UserDatabase.get(i).getOrderHistory().size()) + ", ";
+		  for(int k = 0; k < UserDatabase.get(i).getOrderHistory().size(); k++){
+			  concattedorders = concattedorders + 
+			Integer.toString(UserDatabase.get(i).getOrderHistory().get(k).getId()) + " " +
+			UserDatabase.get(i).getOrderHistory().get(k).getProductName() + " " +
+			Integer.toString(UserDatabase.get(i).getOrderHistory().get(k).getQuantity()) + ", ";
+		  }
+		  return concattedorders;
+		}
+	  }
+	  return "0";
   }
   
   private static String executeList() {
-	return "not done";
+	String theWholeInventory = "";
+	theWholeInventory = Integer.toString(Inventory.size()) + ", ";
+	for(int i = 0; i< Inventory.size(); i++){
+		theWholeInventory = theWholeInventory + Inventory.get(i).getName() + 
+				", " + Integer.toString(Inventory.get(i).getQuantity()) + ", ";
+	}
+	return theWholeInventory;
   }
   
   public static void main (String[] args) {
