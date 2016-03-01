@@ -33,14 +33,18 @@ public class Client {
   }
   
   private static String sendTCP(String hostname, int tcpPort, String cmd) {
-	String response;  
-	try {   
-	  Socket clientSocket = new Socket(hostname, tcpPort);   
-	  DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());   
-	  BufferedReader inFromServer = 
-			  new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-	  outToServer.writeBytes(cmd);   
-	  response = inFromServer.readLine();
+	  String response;  
+	  PrintStream pout;
+	  Scanner din;
+	  	try {  
+	  	Socket clientSocket = new Socket(hostname, tcpPort);  
+	   din = new Scanner(clientSocket.getInputStream());
+	   pout = new PrintStream(clientSocket.getOutputStream());
+	  	//DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());  
+	   //BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	   pout.println(cmd);
+	   pout.flush();
+	   response = din.nextLine();
 	  clientSocket.close();
 	  return response;
 	} catch(IOException e) {

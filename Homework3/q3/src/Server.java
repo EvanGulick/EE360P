@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
@@ -11,6 +12,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -41,17 +43,21 @@ public class Server {
   
   private static void TCPServer(int tcpPort) throws IOException {
 	String cmd;
-	try {
+	PrintStream pout;
+	 Scanner din;
+	 try {
 	  ServerSocket welcomeSocket = new ServerSocket(tcpPort);	// Connect to socket
 	  while(true) {	// Infinite Loop wait for a client
-		Socket connectionSocket = welcomeSocket.accept();             
-		BufferedReader inFromClient = new BufferedReader(
-				new InputStreamReader(connectionSocket.getInputStream()));             
-		DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());             
-		cmd = inFromClient.readLine();	// Receive Command
+	 	Socket connectionSocket = welcomeSocket.accept();
+	 	din = new Scanner(connectionSocket.getInputStream());
+	 	pout = new PrintStream(connectionSocket.getOutputStream());
+	 	//BufferedReader inFromClient = new BufferedReader(
+	 	//	new InputStreamReader(connectionSocket.getInputStream()));  
+	 	//DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());  
+	 	cmd = din.nextLine();	// Receive Command
 		Command cmdObj = new Command(cmd);
 		Future<String> result = es.submit(cmdObj);
-		outToClient.writeBytes(result.get());      
+		pout.println(result.get());      
 	  }
 	} catch(IOException e) {
 	  System.err.println(e);
@@ -190,7 +196,7 @@ public class Server {
     udpPort = Integer.parseInt(args[1]);
     String fileName = args[2];
     
-    ExecutorService es = Executors.newCachedThreadPool();
+   es = Executors.newCachedThreadPool();
     
     // parse the inventory file
     parseFile(fileName);
