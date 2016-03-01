@@ -4,14 +4,85 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Server {
+  private static ExecutorService es;
+  static List<Item> Inventory;
+  static List<User> UserDatabase;
+  
+  static public class Command implements Callable<String> {
+	String cmd;
+	
+	public Command(String cmd) {
+		this.cmd = cmd;
+	}
+	
+	@Override
+	public String call() throws Exception {
+	  return execute(cmd);
+	}
+  }
+  
+  private static void TCPServer(int tcpPort) {
+	String cmd = "";
+	// Infinite Loop wait for a client
+	// Connect to socket
+	// Receive Command
+	Command cmdObj = new Command(cmd);
+	Future<String> result = es.submit(cmdObj);
+	// Send result back
+  }
+  
+  private static void UDPServer(int updPort) {
+	String cmd = "";
+	// Infinite Loop wait for a client
+	// Connect to socket
+	// Receive Command
+	Command cmdObj = new Command(cmd);
+	Future<String> result = es.submit(cmdObj);
+	// Send result back
+  }
+  
+  public static String execute(String cmd) {
+	String tokens[] = cmd.split(" ");
+	if(tokens[0] == "purchase") {
+	  return executePurchase(tokens[1], tokens[2], Integer.parseInt(tokens[3]));
+	} else if (tokens[0] == "cancel") {
+	  return executeCancel(Integer.parseInt(tokens[1]));
+	} else if (tokens[0] == "search") {
+	  return executeSearch(tokens[1]);
+	} else if (tokens[0] == "list") {
+	  return executeList();
+	} else {
+	  return "invalid command";
+	}
+  }
+  
+  private static String executePurchase(String username, String product, int quantity) {
+	return "not done";
+  }
+  
+  private static String executeCancel(int orderId) {
+	return "not done";
+  }
+  
+  private static String executeSearch(String username) {
+	return "not done";
+  }
+  
+  private static String executeList() {
+	return "not done";
+  }
+  
   public static void main (String[] args) {
-    int N;
     int tcpPort;
     int udpPort;
-    List<Item> Inventory = new ArrayList<Item>();
-    List<User> UserDatabase = new ArrayList<User>();
+    Inventory = new ArrayList<Item>();
+    UserDatabase = new ArrayList<User>();
     if (args.length != 3) {
       System.out.println("ERROR: Provide 3 arguments");
       System.out.println("\t(1) <tcpPort>: the port number for TCP connection");
@@ -20,12 +91,40 @@ public class Server {
 
       System.exit(-1);
     }
-    N = Integer.parseInt(args[0]);
-    tcpPort = Integer.parseInt(args[1]);
-    udpPort = Integer.parseInt(args[2]);
-    String fileName = args[3];
+    tcpPort = Integer.parseInt(args[0]);
+    udpPort = Integer.parseInt(args[1]);
+    String fileName = args[2];
+    
+    ExecutorService es = Executors.newCachedThreadPool();
     
     // parse the inventory file
+    parseFile(fileName);
+    
+    // TODO: handle request from clients
+    Thread tcpthread = new Thread(){
+		public void run(){
+			try {
+				TCPServer(tcpPort);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	};
+	Thread udpthread = new Thread(){
+		public void run(){
+			try{
+				UDPServer(udpPort);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	};
+	
+	tcpthread.start();	
+    udpthread.start();
+  }
+  
+  public static void parseFile(String fileName) {
     try {
       BufferedReader br = new BufferedReader(new FileReader(fileName));
       String fileRead = br.readLine();
@@ -58,9 +157,5 @@ public class Server {
 	} catch (IOException e) {   // parse the inventory file
 		e.printStackTrace();
 	}
-    
-    // TODO: handle request from clients
-    
-    
   }
 }

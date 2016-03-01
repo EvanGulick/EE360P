@@ -1,19 +1,46 @@
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.Scanner;
+import java.net.*;
+import java.io.*;
 
 public class Client {
-  private static String sendUDP(String cmd) {
-	  return "UDPdidit";
+  private static String sendUDP(String hostname, int udpPort, String cmd) {
+	  byte[] rbuffer = new byte[1024];
+	  DatagramPacket sPacket, rPacket;
+	  DatagramSocket datasocket = null;
+	  try{
+		  InetAddress ia = InetAddress.getByName(hostname);
+		  datasocket = new DatagramSocket();
+		  byte[] buffer = new byte[cmd.length()];
+		  buffer = cmd.getBytes();
+		  sPacket = new DatagramPacket(buffer, buffer.length, ia, udpPort);
+		  datasocket.send(sPacket);
+		  rPacket = new DatagramPacket(rbuffer, rbuffer.length);
+		  datasocket.receive(rPacket);
+		  return new String(rPacket.getData(), 0, rPacket.getLength());
+	  } catch(UnknownHostException e){
+		  System.err.println(e);
+	  } catch(SocketException e) {
+		  System.err.println(e);
+	  } catch(IOException e){
+		  System.err.println(e);
+	  } finally {
+		  datasocket.close();
+	  }
+	  return new String();
   }
   
-  private static String sendTCP(String cmd) {
-	  return "TCPdidit";
+  private static String sendTCP(String hostname, int tcpPort, String cmd) {
+	  return "not done";
   }
   
-  private static String send(String cmd, String protocol) {
+  private static String send(String hostAddress, int tcpPort, int udpPort, String cmd, String protocol) {
 	if(protocol == "U") {
-  		return sendUDP(cmd);
+  		return sendUDP(hostAddress, udpPort, cmd);
   	} else if(protocol == "T") {
-  		return sendTCP(cmd);
+  		return sendTCP(hostAddress, tcpPort, cmd);
   	} else {
   		return "u stoopid";
   	}
@@ -42,7 +69,7 @@ public class Client {
       String[] tokens = cmd.split(" ");
 
       if (tokens[0].equals("purchase")) {
-    	String response = send(cmd, tokens[tokens.length-1]);
+    	String response = send(hostAddress, tcpPort, udpPort, cmd, tokens[tokens.length-1]);
     	String[] rtokens = response.split(", ");
     	if (response == "Out of Stock") {
     	  System.out.println("Not Available - Not enough items");
@@ -54,7 +81,7 @@ public class Client {
     	}
       } 
       else if (tokens[0].equals("cancel")) {
-    	String response = send(cmd, tokens[tokens.length-1]);
+    	String response = send(hostAddress, tcpPort, udpPort, cmd, tokens[tokens.length-1]);
     	if(response == "Not Found") {
     	  System.out.println(tokens[1] + " not found, no such order.");
     	} else {
@@ -62,7 +89,7 @@ public class Client {
     	}
       } 
       else if (tokens[0].equals("search")) {
-    	String response = send(cmd, tokens[tokens.length-1]);
+    	String response = send(hostAddress, tcpPort, udpPort, cmd, tokens[tokens.length-1]);
     	if(response == "0") {
     	  System.out.println("No orders found for " + tokens[1]);
     	} else {
@@ -75,7 +102,7 @@ public class Client {
     	}
       } 
       else if (tokens[0].equals("list")) {
-    	String response = send(cmd, tokens[tokens.length-1]);
+    	String response = send(hostAddress, tcpPort, udpPort, cmd, tokens[tokens.length-1]);
     	String[] rtokens = response.split(", ");
   	    for(int i = 1; i < Integer.parseInt(rtokens[0]) + 1; i++) {
   		  System.out.println(Integer.parseInt(rtokens[i]));
