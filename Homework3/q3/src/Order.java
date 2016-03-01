@@ -5,22 +5,27 @@ public class Order {
 	int quantity;
 	static int idnumber = 0;
 	
-	Order(String name, int quantity) {
+	public Order(String name, int quantity) {
 		idnumber += 1;
 		this.id = idnumber;
 		productName = name;
 		this.quantity = quantity;
 	}
 	
-	int getId() {
+	// make a dummy Order that basically is null
+	public Order() {
+	  id = -1;
+	}
+	
+	public int getId() {
 		return id;
 	}
 	
-	String getProductName(){
+	public String getProductName(){
 		return productName;
 	}
 	
-	int getQuantity(){
+	public int getQuantity(){
 		return quantity;
 	}
 }

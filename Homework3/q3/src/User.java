@@ -5,24 +5,33 @@ public class User {
 	String name;
 	List<Order> orderHistory;
 	
-	User(String name) {
+	public User(String name) {
 		this.name = name;
 		orderHistory = new ArrayList<Order>();
 	}
 	
-	String getUserName(){
+	public String getUserName(){
 		return name;
 	}
 	
-	List<Order> getOrderHistory(){
+	public List<Order> getOrderHistory(){
 		return orderHistory;
 	}
 	
-	void addingOrder(Order neworder){
+	public Order getOrder(int orderId){
+		for(int i = 0; i < orderHistory.size(); i++) {
+			if(orderHistory.get(i).getId() == orderId) {
+				return orderHistory.get(i);
+			}
+		}
+		return new Order();
+	}
+	
+	public void addingOrder(Order neworder){
 		orderHistory.add(neworder);
 	}
 	
-	int removeorder(int orderid){
+	public int removeorder(int orderid){
 		for(int i = 0; i<orderHistory.size(); i++){
 			if(orderHistory.get(i).getId() == orderid){
 				orderHistory.remove(i);

@@ -57,7 +57,8 @@ public class Server {
 	 	cmd = din.nextLine();	// Receive Command
 		Command cmdObj = new Command(cmd);
 		Future<String> result = es.submit(cmdObj);
-		pout.println(result.get());      
+		String strResult = result.get();
+		pout.println(strResult);      
 	  }
 	} catch(IOException e) {
 	  System.err.println(e);
@@ -74,16 +75,18 @@ public class Server {
 	try {
 	  DatagramSocket datasocket = new DatagramSocket(updPort);	// Connect to socket
 	  byte[] buf = new byte[1024];
+	  byte[] rbuf = new byte[1024];
 	  while(true){	// Infinite Loop wait for a client
 		datapacket = new DatagramPacket(buf, buf.length);
 		datasocket.receive(datapacket);		// Receive Command
 		cmd = new String(datapacket.getData(), 0, datapacket.getLength());
 		Command cmdObj = new Command(cmd);
 		Future<String> result = es.submit(cmdObj);
-		buf = new byte[cmdObj.getString().length()];
-		buf = result.get().getBytes();
-		returnpacket = new DatagramPacket(buf, 
-						buf.length, 
+		String strResult = result.get();
+		rbuf = new byte[strResult.length()];
+		rbuf = strResult.getBytes();
+		returnpacket = new DatagramPacket(rbuf, 
+						rbuf.length, 
 						datapacket.getAddress(),
 						datapacket.getPort());
 		datasocket.send(returnpacket);
@@ -95,7 +98,7 @@ public class Server {
 	} catch (InterruptedException e) {
 	  System.err.println(e);
 	} catch (ExecutionException e) {
-	  System.err.println(e);	
+		e.printStackTrace();
 	}
   }
   
@@ -110,7 +113,7 @@ public class Server {
 	} else if (tokens[0].equals("list")) {
 	  return executeList();
 	} else {
-	  return "invalid command";
+	  return "invalid command: " + cmd;
 	}
   }
   
@@ -144,8 +147,20 @@ public class Server {
   
   private static String executeCancel(int orderId) {
 	for(int i = 0; i<UserDatabase.size(); i++){
-	  if(UserDatabase.get(i).removeorder(orderId) == 1){
+	  Order order = UserDatabase.get(i).getOrder(orderId);
+	  if(order.getId() != -1) {
+		// remove order
+		if(UserDatabase.get(i).getOrderHistory().remove(order)) {
+		  // return item to inventory
+		  String rItem = order.getProductName();
+		  int rQuantity = order.getQuantity();
+		  for(int j = 0; j < Inventory.size(); j++){
+			if(Inventory.get(j).getName().equals(rItem)) {
+			  Inventory.get(j).returnItem(rQuantity);
+			}
+		  }
 		  return "Check";
+		}
 	  }
 	}
 	return "Not Found";
@@ -154,6 +169,7 @@ public class Server {
   private static String executeSearch(String username) {
 	  for(int i = 0; i<UserDatabase.size(); i++){
 		if(UserDatabase.get(i).getUserName().equals(username)){
+		  if(UserDatabase.get(i).getOrderHistory().size() == 0) { return "0"; }
 		  String concattedorders = "";
 		  concattedorders = Integer.toString(
 				  UserDatabase.get(i).getOrderHistory().size()) + ", ";
