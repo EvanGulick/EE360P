@@ -55,19 +55,20 @@ public class TextAnalyzer extends Configured implements Tool {
         public void map(LongWritable key, Text value, Context context)
             throws IOException, InterruptedException
         {
-        	
         	String line = value.toString().toLowerCase().replaceAll("\\W", " ");
         	StringTokenizer tokens = new StringTokenizer(line, " ");
         	ArrayList<String> words = new ArrayList<String>(); 
         	while (tokens.hasMoreTokens()) {
         		words.add(tokens.nextToken());
         	}
+        	
         	ArrayList<String> contextwordcheck = new ArrayList<String>();
         	for(int i = 0; i < words.size()-1; i++){
-        		if(!contextwordcheck.contains(words.get(i))){
-        			for(int j = i + 1; j < words.size(); j++){
-        				Text contextWord = new Text(words.get(j));
-        				Tuple tuple = new Tuple(contextWord, ONE);
+        		if(!contextwordcheck.contains(words.get(i))) {
+    				Text contextWord = new Text(words.get(i));
+        			for(int j = i + 1; j < words.size(); j++) {
+        				Text queryWord = new Text(words.get(j));
+        				Tuple tuple = new Tuple(queryWord, ONE);
         				context.write(contextWord, tuple);
         			}
         			contextwordcheck.add(words.get(i));
