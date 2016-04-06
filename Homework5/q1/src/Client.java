@@ -1,6 +1,3 @@
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.net.*;
@@ -15,6 +12,7 @@ public class Client {
 		Scanner din;
 		try {  
 		  Socket clientSocket = new Socket(hostname, tcpPort);  
+		  clientSocket.setSoTimeout(100);
 		  din = new Scanner(clientSocket.getInputStream());
 		  pout = new PrintStream(clientSocket.getOutputStream());
 		  pout.println(cmd);
@@ -22,14 +20,21 @@ public class Client {
 		  response = din.nextLine();
 		  clientSocket.close();
 		  return response;
-		} catch(IOException e) {
+		} catch(SocketTimeoutException e){
+			serverList.remove(0);
+			if(serverList.size()>0){
+				sendTCP(serverList.get(0).getIp(), serverList.get(0).getPort(), cmd);
+			}
+		}
+		catch(IOException e) {
 		  System.err.println(e);
 		}
 		return new String();
 	  }   
 	
   public static void main (String[] args) {
-    Scanner sc = new Scanner(System.in);
+    @SuppressWarnings("resource")
+	Scanner sc = new Scanner(System.in);
     int numServer = sc.nextInt();
     
     for (int i = 0; i < numServer; i++) {
