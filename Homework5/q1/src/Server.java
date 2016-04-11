@@ -7,15 +7,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
@@ -35,13 +31,14 @@ public class Server {
 	@Override
 	public void run() {
 	  try {
+		@SuppressWarnings("resource")
 		ServerSocket clientSocket = new ServerSocket(ServerList.get(myID).getPort());	// Connect to socket
 		while(true) {	// Infinite Loop wait for a client
 		  Socket connectionSocket = clientSocket.accept();
 		  es.submit(new ClientTask(connectionSocket)); // spawn new client thread to perform task
 		}
 	  } catch (IOException e) {
-		e.printStackTrace();
+		//e.printStackTrace();
 	  }
 	}
   }
@@ -50,13 +47,14 @@ public class Server {
 	@Override
 	public void run(){
 	  try {
+		@SuppressWarnings("resource")
 		ServerSocket serverSocket = new ServerSocket(serverPorts[myID]);	// Connect to socket
 		while(true) {	// Infinite Loop wait for a server connection
 		  Socket connectionSocket = serverSocket.accept();
 		  es.submit(new ServerTask(connectionSocket));	// spawn new server thread to perform task
 		}
 	  } catch(IOException e) {
-	    System.err.println(e);
+	    //System.err.println(e);
 	  }
 	}
   }
@@ -86,9 +84,9 @@ public class Server {
   static public class MsgToServers implements Runnable {
 	@Override
 	public void run() {
-		for(int i = 0; i < numServer; i++) {
-			
-		}
+	  for(int i = 0; i < numServer; i++) {
+		// TODO	
+	  }
 	}
   }
   
@@ -119,19 +117,19 @@ public class Server {
   }*/
   
   public static String execute(String cmd) {
-		String tokens[] = cmd.split(" ");
-		if(tokens[0].equals("purchase")) {
-		  return executePurchase(tokens[1], tokens[2], Integer.parseInt(tokens[3]));
-		} else if (tokens[0].equals("cancel")) {
-		  return executeCancel(Integer.parseInt(tokens[1]));
-		} else if (tokens[0].equals("search")) {
-		  return executeSearch(tokens[1]);
-		} else if (tokens[0].equals("list")) {
-		  return executeList();
-		} else {
-		  return "invalid command: " + cmd;
-		}
-	  }
+	String tokens[] = cmd.split(" ");
+	if(tokens[0].equals("purchase")) {
+	  return executePurchase(tokens[1], tokens[2], Integer.parseInt(tokens[3]));
+	} else if (tokens[0].equals("cancel")) {
+	  return executeCancel(Integer.parseInt(tokens[1]));
+	} else if (tokens[0].equals("search")) {
+	  return executeSearch(tokens[1]);
+	} else if (tokens[0].equals("list")) {
+	  return executeList();
+	} else {
+	  return "invalid command: " + cmd;
+	}
+  }
 	  
   private static String executePurchase(String username, String product, int quantity) {
 	String putittogether = "";
@@ -141,12 +139,12 @@ public class Server {
 	      Inventory.get(i).setQuantity(quantity);
 	      Order neworder = new Order(product, quantity);
 	      putittogether = Integer.toString(neworder.getId()) + ", "
-	     + username + ", " + product + ", " + Integer.toString(quantity);
+	    	+ username + ", " + product + ", " + Integer.toString(quantity);
 	      for(int k = 0; k<UserDatabase.size(); k++){
-	    	  if(UserDatabase.get(k).getUserName().equals(username)){
-	    		  UserDatabase.get(k).addingOrder(neworder);
-	    		  return putittogether;
-	    	  }
+	    	if(UserDatabase.get(k).getUserName().equals(username)){
+	    	  UserDatabase.get(k).addingOrder(neworder);
+	    	  return putittogether;
+	    	}
 	      }
 	      User newuser = new User(username);
 	      newuser.orderHistory.add(neworder);
@@ -205,14 +203,13 @@ public class Server {
 	String theWholeInventory = "";
 	theWholeInventory = Integer.toString(Inventory.size()) + ", ";
 	for(int i = 0; i< Inventory.size(); i++){
-		theWholeInventory = theWholeInventory + Inventory.get(i).getName() + 
-				", " + Integer.toString(Inventory.get(i).getQuantity()) + ", ";
+	  theWholeInventory = theWholeInventory + Inventory.get(i).getName() + 
+			", " + Integer.toString(Inventory.get(i).getQuantity()) + ", ";
 	}
 	return theWholeInventory;
   }
   
   public static void main (String[] args) {
-
     Scanner sc = new Scanner(System.in);
     myID = sc.nextInt();
     numServer = sc.nextInt();
@@ -222,10 +219,10 @@ public class Server {
     es = Executors.newCachedThreadPool();
 
     for (int i = 0; i < numServer; i++) {
-        String[] splitting = sc.nextLine().split(":");
-        Address server = new Address(splitting[0], Integer.parseInt(splitting[1]));
-        ServerList.add(server);
-        serverPorts[i] = 9451 + i;
+      String[] splitting = sc.nextLine().split(":");
+      Address server = new Address(splitting[0], Integer.parseInt(splitting[1]));
+      ServerList.add(server);
+      serverPorts[i] = 9451 + i;
     }
     sc.close();
     
@@ -244,93 +241,93 @@ public class Server {
   }
   
   private static void ServeClient(Socket connectionSocket) {
-	  String cmd;
-	  PrintStream pout;
-	  Scanner din;
-	  try {
-		  din = new Scanner(connectionSocket.getInputStream());
-		  pout = new PrintStream(connectionSocket.getOutputStream());
-		  cmd = din.nextLine();	// Receive Command
-		  requestCS();
-		  String result = execute(cmd); // CS
-		  forwardChanges(cmd);
-		  pout.println(result);
-	  } catch(IOException e) {
-		  System.err.println(e);
-	  }
+	String cmd;
+	PrintStream pout;
+	Scanner din;
+	try {
+	  din = new Scanner(connectionSocket.getInputStream());
+	  pout = new PrintStream(connectionSocket.getOutputStream());
+	  cmd = din.nextLine();	// Receive Command
+	  requestCS();
+	  String result = execute(cmd); // CS
+	  forwardChanges(cmd);
+	  pout.println(result);
+	} catch(IOException e) {
+	  System.err.println(e);
+	}
   }
   
   private static void requestCS() {
-	  Integer threadID = ThreadTicket.getAndIncrement();
-	  ServerTicketList.add(threadID);
-	  String msg = "0 " + myID;
-	  sendToAll(msg);
-	  
+	Integer threadID = ThreadTicket.getAndIncrement();
+	ServerTicketList.add(threadID);
+	String msg = "0 " + myID;
+	sendToAll(msg);
+	// TODO
   }
   
   private static void forwardChanges(String cmd) {
-	  String msg = "1 " + cmd;
-	  sendToAll(msg);
+	String msg = "1 " + cmd;
+	sendToAll(msg);
   }
   
   private static void sendToAll(String msg) {
-	  for(int i = 0; i < numServer; i++) {
-		  if(i != myID) {
-			  es.submit(new MsgToServers()); // -------------------------------------- next TODO
-		  }
+	for(int i = 0; i < numServer; i++) {
+	  if(i != myID) {
+		es.submit(new MsgToServers()); //TODO?
 	  }
+	}
   }
   
   private static void ServeServer(Socket connectionSocket) {
-	  String cmd;
-	  PrintStream pout;
-	  Scanner din;
-	  try {
-		  din = new Scanner(connectionSocket.getInputStream());
-		  pout = new PrintStream(connectionSocket.getOutputStream());
-		  /*cmd = din.nextLine();	// Receive Command
-		  Command cmdObj = new Command(cmd);
-		  Future<String> result = es.submit(cmdObj);
-		  String strResult = result.get();
-		  pout.println(strResult);*/
-	  } catch(IOException e) {
-		  System.err.println(e);
-	  }
+	String msg;
+	PrintStream pout;
+	Scanner din;
+	try {
+	  din = new Scanner(connectionSocket.getInputStream());
+	  pout = new PrintStream(connectionSocket.getOutputStream());
+	  msg = din.nextLine();	// Receive Command
+	  //TODO
+	  /*Command cmdObj = new Command(cmd);
+	  Future<String> result = es.submit(cmdObj);
+	  String strResult = result.get();
+	  pout.println(strResult);*/
+	} catch(IOException e) {
+	  System.err.println(e);
+	}
   }
   	
   public static void parseFile(String fileName) {
-	    try {
-	      BufferedReader br = new BufferedReader(new FileReader(fileName));
-	      String fileRead = br.readLine();
+    try {
+	  BufferedReader br = new BufferedReader(new FileReader(fileName));
+	  String fileRead = br.readLine();
 	      
-	      while (fileRead != null) {
-	    	// use string.split to load a string array with the values from each line of
-	    	// the file, using a comma as the delimiter
-	    	String[] tokenize = fileRead.split(" ");
+	  while (fileRead != null) {
+	    // use string.split to load a string array with the values from each line of
+	    // the file, using a comma as the delimiter
+	    String[] tokenize = fileRead.split(" ");
 				
-	    	// assume file is made correctly
-	    	// and make temporary variables for the three types of data
-	    	String tempItem = tokenize[0];
-	    	int tempQty = Integer.parseInt(tokenize[1]);
-				
-	    	// create temporary instance of Inventory object
-	    	// and load with three data values
-	    	Item tmpItem = new Item(tempItem, tempQty);
-				
-	    	// add to array list
-	    	Inventory.add(tmpItem);
-				
-	    	// read next line before looping
-	    	// if end of file reached 
-	    	fileRead = br.readLine();
-	      }
-	      //close file stream
-	      br.close();
-	    } catch (FileNotFoundException e) {
-	    	System.out.println("file not found");
-		} catch (IOException e) {   // parse the inventory file
-			e.printStackTrace();
-		}
+	    // assume file is made correctly
+	    // and make temporary variables for the three types of data
+	    String tempItem = tokenize[0];
+	    int tempQty = Integer.parseInt(tokenize[1]);
+			
+	    // create temporary instance of Inventory object
+	    // and load with three data values
+	    Item tmpItem = new Item(tempItem, tempQty);
+			
+	    // add to array list
+	    Inventory.add(tmpItem);
+			
+	    // read next line before looping
+	    // if end of file reached 
+	    fileRead = br.readLine();
 	  }
-  
+	  //close file stream
+	  br.close();
+	} catch (FileNotFoundException e) {
+	  System.out.println("file not found");
+	} catch (IOException e) {   // parse the inventory file
+	  e.printStackTrace();
+	}
+  }  
 }
