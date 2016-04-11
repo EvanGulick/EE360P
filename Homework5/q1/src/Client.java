@@ -10,7 +10,7 @@ public class Client {
 		String response;  
 		PrintStream pout;
 		Scanner din;
-		try {  
+		try {
 		  Socket clientSocket = new Socket(hostname, tcpPort);  
 		  clientSocket.setSoTimeout(100);
 		  din = new Scanner(clientSocket.getInputStream());
