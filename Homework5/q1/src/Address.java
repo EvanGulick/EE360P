@@ -1,3 +1,8 @@
+/**
+ * Address.java
+ * @author Scott Larson and Evan Gulick
+ */
+
 public class Address {
 	String ipAddress;
 	int portnum;
