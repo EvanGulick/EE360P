@@ -15,8 +15,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
-  static ArrayList<Address> ServerList = new ArrayList<Address>();
   private static ExecutorService es;
+  static List<Address> ServerList;
   static List<Item> Inventory;
   static List<User> UserDatabase;
   
@@ -24,8 +24,8 @@ public class Server {
   static PriorityQueue<Integer> ServerTicketList = new PriorityQueue<Integer>();
   
   static int myID;
-  static int numServer;
-  static int[] serverPorts;
+  static int NumServers;
+  static int[] ServerPorts;
 
   static public class ClientListen implements Runnable {
 	@Override
@@ -48,7 +48,7 @@ public class Server {
 	public void run(){
 	  try {
 		@SuppressWarnings("resource")
-		ServerSocket serverSocket = new ServerSocket(serverPorts[myID]);	// Connect to socket
+		ServerSocket serverSocket = new ServerSocket(ServerPorts[myID]);	// Connect to socket
 		while(true) {	// Infinite Loop wait for a server connection
 		  Socket connectionSocket = serverSocket.accept();
 		  es.submit(new ServerTask(connectionSocket));	// spawn new server thread to perform task
@@ -82,39 +82,53 @@ public class Server {
   }
   
   static public class MsgToServers implements Runnable {
+	String msg;
+	MsgToServers(String msg) {
+		this.msg = msg;
+	}
 	@Override
 	public void run() {
-	  for(int i = 0; i < numServer; i++) {
-		// TODO	
+	  for(int i = 0; i < NumServers; i++) {
+		if(i != myID) {
+		  es.submit(new TalkToServer(i, msg));
+		}
 	  }
 	}
   }
   
-  // Thread for server to server communication
-  /*private static void TCPServer(int tcpPort) throws IOException {
-	String cmd;
-	PrintStream pout;
-	Scanner din;
-	try {
-	  ServerSocket welcomeSocket = new ServerSocket(tcpPort);	// Connect to socket
-	  while(true) {	// Infinite Loop wait for a client
-	 	Socket connectionSocket = welcomeSocket.accept();
-	 	din = new Scanner(connectionSocket.getInputStream());
-	 	pout = new PrintStream(connectionSocket.getOutputStream());
-	 	cmd = din.nextLine();	// Receive Command
-		Command cmdObj = new Command(cmd);
-		Future<String> result = es.submit(cmdObj);
-		String strResult = result.get();
-		pout.println(strResult);      
-	  }
-	} catch(IOException e) {
-	  System.err.println(e);
-	} catch(InterruptedException e) {
-	  System.err.println(e);
-	} catch(ExecutionException e) {
-	  System.err.println(e);
+  static public class TalkToServer implements Runnable {
+	String ip;
+	int port;
+	String msg;
+	int serverIndex;
+	TalkToServer(int serverIndex, String msg) {
+		this.ip = ServerList.get(serverIndex).getIp();
+		this.port = ServerList.get(serverIndex).getPort();
+		this.msg = msg;
+		this.serverIndex = serverIndex;
 	}
-  }*/
+	@Override
+	public void run() {
+	  @SuppressWarnings("unused")
+	  String response;  
+	  PrintStream pout;
+	  Scanner din;
+	  try {
+		Socket clientSocket = new Socket(ip, port);  
+		clientSocket.setSoTimeout(100);
+		din = new Scanner(clientSocket.getInputStream());
+		pout = new PrintStream(clientSocket.getOutputStream());
+		pout.println(msg);
+		pout.flush();
+		response = din.nextLine();
+		clientSocket.close();
+	  } catch(SocketTimeoutException e){
+		ServerList.remove(serverIndex);
+	  } catch(IOException e) {
+		//System.err.println(e);
+	  }
+	}  
+  }
   
   public static String execute(String cmd) {
 	String tokens[] = cmd.split(" ");
@@ -211,33 +225,32 @@ public class Server {
   
   public static void main (String[] args) {
     Scanner sc = new Scanner(System.in);
-    myID = sc.nextInt();
-    numServer = sc.nextInt();
-    String inventoryPath = sc.next();
-    serverPorts = new int[numServer];
+    String[] firstLine = sc.nextLine().split(" ");
+    myID = Integer.parseInt(firstLine[0]) - 1;
+    NumServers = Integer.parseInt(firstLine[1]);
+    String inventoryPath = firstLine[2];
+    
+    ServerPorts = new int[NumServers];
+    ServerList = new ArrayList<Address>();
+    UserDatabase = new ArrayList<User>();
+    Inventory = new ArrayList<Item>();
     
     es = Executors.newCachedThreadPool();
 
-    for (int i = 0; i < numServer; i++) {
+    for (int i = 0; i < NumServers; i++) {
       String[] splitting = sc.nextLine().split(":");
       Address server = new Address(splitting[0], Integer.parseInt(splitting[1]));
       ServerList.add(server);
-      serverPorts[i] = 9451 + i;
+      ServerPorts[i] = 9451 + i;
     }
     sc.close();
     
     parseFile(inventoryPath);
     
-    ThreadTicket = new AtomicInteger(numServer + 1);
+    ThreadTicket = new AtomicInteger(NumServers + 1);
     
     es.submit(new ClientListen());
     es.submit(new ServerListen());
-    // TODO: start server socket to communicate with clients and other servers
-    // receive normally from clients
-    
-    // Communication with servers:
-    // 		receive: CS request, cmd to change inventory, cmd to change database
-    //		sent   : CS request, CS release (cmd)
   }
   
   private static void ServeClient(Socket connectionSocket) {
@@ -260,20 +273,21 @@ public class Server {
   private static void requestCS() {
 	Integer threadID = ThreadTicket.getAndIncrement();
 	ServerTicketList.add(threadID);
-	String msg = "0 " + myID;
+	String msg = "0 " + myID; // 0 is request
 	sendToAll(msg);
-	// TODO
+	while(ServerTicketList.peek() != threadID) {}
   }
   
   private static void forwardChanges(String cmd) {
-	String msg = "1 " + cmd;
+	String msg = "1 " + cmd; // 1 is release
 	sendToAll(msg);
+	ServerTicketList.remove();	// throws an exception for debugging purposes
   }
   
   private static void sendToAll(String msg) {
-	for(int i = 0; i < numServer; i++) {
+	for(int i = 0; i < NumServers; i++) {
 	  if(i != myID) {
-		es.submit(new MsgToServers()); //TODO?
+		es.submit(new MsgToServers(msg));
 	  }
 	}
   }
@@ -286,11 +300,15 @@ public class Server {
 	  din = new Scanner(connectionSocket.getInputStream());
 	  pout = new PrintStream(connectionSocket.getOutputStream());
 	  msg = din.nextLine();	// Receive Command
-	  //TODO
-	  /*Command cmdObj = new Command(cmd);
-	  Future<String> result = es.submit(cmdObj);
-	  String strResult = result.get();
-	  pout.println(strResult);*/
+	  String[] tokens = msg.split(" ");
+	  if(tokens[0].equals("0")) {
+		int reqThread = Integer.parseInt(tokens[1]);
+		ServerTicketList.add(reqThread);
+	  } else {
+		execute(tokens[1]);
+		ServerTicketList.remove(); // throws an exception for debugging purposes
+	  }
+	  pout.println("k");
 	} catch(IOException e) {
 	  System.err.println(e);
 	}

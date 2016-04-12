@@ -25,6 +25,7 @@ public class Client {
 			if(serverList.size()>0){
 				sendTCP(serverList.get(0).getIp(), serverList.get(0).getPort(), cmd);
 			}
+			System.err.println(e);
 		}
 		catch(IOException e) {
 		  System.err.println(e);
@@ -35,7 +36,7 @@ public class Client {
   public static void main (String[] args) {
     @SuppressWarnings("resource")
 	Scanner sc = new Scanner(System.in);
-    int numServer = sc.nextInt();
+    int numServer = Integer.parseInt(sc.nextLine());
     
     for (int i = 0; i < numServer; i++) {
       String[] splitting = sc.nextLine().split(":");
