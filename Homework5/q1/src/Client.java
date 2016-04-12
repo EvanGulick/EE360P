@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.net.*;
 import java.io.*;
@@ -7,30 +8,53 @@ public class Client {
     static ArrayList<Address> serverList = new ArrayList<Address>();
     
 	private static String sendTCP(String hostname, int tcpPort, String cmd) {
-		String response;  
-		PrintStream pout;
-		Scanner din;
+		String response = new String();  
+		PrintStream pout = null;
+		Scanner din = null;// = new Scanner(System.in); 
+		Socket clientSocket = new Socket();
 		try {
-		  Socket clientSocket = new Socket(hostname, tcpPort);  
+		  clientSocket.connect(new InetSocketAddress(hostname, tcpPort), 100);//Socket clientSocket = new Socket(hostname, tcpPort);  
 		  clientSocket.setSoTimeout(100);
 		  din = new Scanner(clientSocket.getInputStream());
 		  pout = new PrintStream(clientSocket.getOutputStream());
 		  pout.println(cmd);
 		  pout.flush();
-		  response = din.nextLine();
-		  clientSocket.close();
+		  while(din.hasNextLine()) { 
+		    response = din.nextLine();
+		    if(response != null) break;
+		  }
 		  return response;
 		} catch(SocketTimeoutException e){
-			serverList.remove(0);
-			if(serverList.size()>0){
-				sendTCP(serverList.get(0).getIp(), serverList.get(0).getPort(), cmd);
-			}
-			System.err.println(e);
+		  try {
+			clientSocket.close();
+		    din.close();
+		  }
+		  catch (NullPointerException n) { }
+		  catch(IOException n) {}
+		  serverList.remove(0);
+		} catch(ConnectException e) {
+		  try {
+			clientSocket.close();
+			din.close();
+		  } 
+		  catch (NullPointerException n) { }
+		  catch(IOException n) {}
+		  serverList.remove(0);
 		}
-		catch(IOException e) {
-		  System.err.println(e);
+		catch(IOException e) {} 
+		finally {
+		  try {
+			clientSocket.close();
+			din.close();
+			pout.close();
+		  } 
+		  catch(NullPointerException e) {} 
+		  catch(IOException e) {}
+		  if(serverList.size() > 0 && response.equals("")){
+			response = sendTCP(serverList.get(0).getIp(), serverList.get(0).getPort(), cmd);
+		  }
 		}
-		return new String();
+		return response;
 	  }   
 	
   public static void main (String[] args) {
